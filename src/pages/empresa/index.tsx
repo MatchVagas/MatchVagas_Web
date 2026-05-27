@@ -8,7 +8,7 @@ import { lookupService } from '@/services/lookupService'
 import { notificacaoService } from '@/services/notificacaoService'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModalVaga from './ModalVaga'
-import type { Empresa, CandidaturaRecebida, VagaForm } from '@/types/empresa'
+import type { Empresa, VagaForm } from '@/types/empresa'
 import type { Vaga } from '@/types/vaga'
 
 type Aba = 'vagas' | 'candidatos' | 'notificacoes' | 'perfil'
