@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
 import SplitAuthLayout from '@/components/SplitAuthLayout'
 import type { AuthResponse } from '@/types/auth'
+
+const rotas: Record<string, string> = {
+  CANDIDATO: '/candidato',
+  EMPRESA: '/empresa',
+  ADMIN: '/admin',
+}
 
 export default function Login() {
   const navigate = useNavigate()
@@ -13,15 +19,16 @@ export default function Login() {
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
 
+  // Usuário já logado não precisa ver o formulário de novo
+  useEffect(() => {
+    const usuario = authService.getUsuario()
+    if (usuario) navigate(rotas[usuario.perfil] ?? '/', { replace: true })
+  }, [navigate])
+
   const { mutate, isPending, error } = useMutation({
     mutationFn: () => authService.login({ email, senha }),
     onSuccess: (data: AuthResponse) => {
       authService.saveSession(data)
-      const rotas: Record<string, string> = {
-        CANDIDATO: '/candidato',
-        EMPRESA: '/empresa',
-        ADMIN: '/admin',
-      }
       navigate(rotas[data.perfil] ?? '/')
     },
   })
