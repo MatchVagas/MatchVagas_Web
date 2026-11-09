@@ -3,6 +3,7 @@ import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Cadastro from '@/pages/Cadastro'
 import EsqueceuSenha from '@/pages/EsqueceuSenha'
+import ConfirmarEmail from '@/pages/ConfirmarEmail'
 import Vagas from '@/pages/Vagas'
 import VagaDetalhe from '@/pages/VagaDetalhe'
 import PaginaCandidato from '@/pages/candidato'
@@ -17,6 +18,7 @@ export default function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
+        <Route path="/confirmar-email" element={<ConfirmarEmail />} />
         <Route path="/vagas" element={<Vagas />} />
         <Route path="/vagas/:id" element={<VagaDetalhe />} />
         <Route path="/candidato" element={<PaginaCandidato />} />

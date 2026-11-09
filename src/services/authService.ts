@@ -11,9 +11,18 @@ export const authService = {
     await api.post('/api/auth/register', data)
   },
 
-  async registerEmpresa(data: EmpresaRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/api/auth/register-empresa', data)
-    return response.data
+  // Como no cadastro de candidato, a conta só entra depois de confirmar o e-mail:
+  // a resposta não traz token.
+  async registerEmpresa(data: EmpresaRequest): Promise<void> {
+    await api.post('/api/auth/register-empresa', data)
+  },
+
+  async confirmarEmail(token: string): Promise<void> {
+    await api.post('/api/auth/confirmar-email', { token })
+  },
+
+  async reenviarVerificacao(email: string): Promise<void> {
+    await api.post('/api/auth/reenviar-verificacao', { email })
   },
 
   async esqueceuSenha(email: string): Promise<void> {

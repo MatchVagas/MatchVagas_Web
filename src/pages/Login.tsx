@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
+import { mensagemDeErro } from '@/services/api'
 import SplitAuthLayout from '@/components/SplitAuthLayout'
 import type { AuthResponse } from '@/types/auth'
 
@@ -14,8 +15,9 @@ const rotas: Record<string, string> = {
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const cadastroSucesso = (location.state as { cadastroSucesso?: boolean } | null)?.cadastroSucesso
-  const [email, setEmail] = useState('')
+  const estado = location.state as { cadastroSucesso?: boolean; email?: string } | null
+  const cadastroSucesso = estado?.cadastroSucesso
+  const [email, setEmail] = useState(estado?.email ?? '')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
 
@@ -33,13 +35,19 @@ export default function Login() {
     },
   })
 
-  const mensagemErro = error instanceof Error ? error.message : null
+  const mensagemErro = error ? mensagemDeErro(error, 'Não foi possível entrar. Tente novamente.') : null
+  // O backend recusa o login enquanto o e-mail não for confirmado.
+  const emailNaoConfirmado = mensagemErro?.toLowerCase().includes('não verificado') ?? false
 
   return (
     <SplitAuthLayout titulo="Bem-vindo de volta" subtitulo="Acesse sua conta para continuar">
       {cadastroSucesso && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3 mb-6">
-          Conta criada com sucesso! Faça login para continuar.
+        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3 mb-6 space-y-2">
+          <p>
+            Conta criada! Enviamos um link de confirmação para{' '}
+            <strong>{estado?.email ?? 'o seu e-mail'}</strong>. Confirme o e-mail para entrar.
+          </p>
+          {estado?.email && <ReenviarLink email={estado.email} />}
         </div>
       )}
 
@@ -78,6 +86,7 @@ export default function Login() {
         </div>
 
         {mensagemErro && <ErroMsg texto={mensagemErro} />}
+        {emailNaoConfirmado && email && <ReenviarLink email={email} />}
 
         <button type="submit" disabled={isPending} className={btn}>
           {isPending ? 'Entrando...' : 'Entrar'}
@@ -91,6 +100,20 @@ export default function Login() {
         </a>
       </p>
     </SplitAuthLayout>
+  )
+}
+
+function ReenviarLink({ email }: { email: string }) {
+  const { mutate, isPending, isSuccess } = useMutation({
+    mutationFn: () => authService.reenviarVerificacao(email),
+  })
+
+  if (isSuccess) return <p className="text-sm text-green-700">Link reenviado. Confira também a caixa de spam.</p>
+  return (
+    <button type="button" onClick={() => mutate()} disabled={isPending}
+      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition disabled:text-blue-300">
+      {isPending ? 'Reenviando...' : 'Não recebeu? Reenviar link de confirmação'}
+    </button>
   )
 }
 

@@ -18,12 +18,24 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // 401 em /api/auth (login recusado, e-mail não confirmado) é erro do formulário,
+    // não sessão expirada: recarregar a página apagaria a mensagem.
+    const rotaDeAutenticacao = error.config?.url?.startsWith('/api/auth/')
+    if (error.response?.status === 401 && !rotaDeAutenticacao) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
     return Promise.reject(error)
   },
 )
+
+/** Mensagem que o backend devolveu (ErrorResponse.message), ou o texto padrão. */
+export function mensagemDeErro(error: unknown, padrao = 'Não foi possível concluir. Tente novamente.'): string {
+  if (axios.isAxiosError(error)) {
+    const mensagem = (error.response?.data as { message?: string } | undefined)?.message
+    if (mensagem) return mensagem
+  }
+  return padrao
+}
 
 export default api
