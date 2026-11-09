@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
 import { lookupService } from '@/services/lookupService'
+import { mensagemDeErro } from '@/services/api'
 import SplitAuthLayout from '@/components/SplitAuthLayout'
 
 type TipoConta = 'CANDIDATO' | 'EMPRESA'
@@ -61,7 +62,7 @@ function FormCandidato({ onVoltar, navigate }: { onVoltar: () => void; navigate:
       tipoUsuario: 'CANDIDATO',
       ativo: true,
     }),
-    onSuccess: () => navigate('/login', { state: { cadastroSucesso: true } }),
+    onSuccess: () => navigate('/login', { state: { cadastroSucesso: true, email: form.email } }),
   })
 
   function set(f: string, v: string) { setForm((prev) => ({ ...prev, [f]: v })) }
@@ -89,7 +90,7 @@ function FormCandidato({ onVoltar, navigate }: { onVoltar: () => void; navigate:
           <input type="date" value={form.dataNascimento} onChange={(e) => set('dataNascimento', e.target.value)}
             required max={new Date().toISOString().split('T')[0]} className={ic} />
         </Campo>
-        {error && <ErroMsg texto={error instanceof Error ? error.message : 'Erro ao cadastrar.'} />}
+        {error && <ErroMsg texto={mensagemDeErro(error, 'Erro ao cadastrar.')} />}
         <button type="submit" disabled={isPending} className={btn}>{isPending ? 'Cadastrando...' : 'Criar conta'}</button>
       </form>
     </>
@@ -110,7 +111,8 @@ function FormEmpresa({ onVoltar, navigate }: { onVoltar: () => void; navigate: R
       descricao: form.descricao || undefined, porteId: Number(form.porteId),
       ramoId: Number(form.ramoId), site: form.site || undefined,
     }),
-    onSuccess: (data) => { authService.saveSession(data); navigate('/empresa') },
+    // A conta só entra depois de confirmar o e-mail: volta ao login com o aviso.
+    onSuccess: () => navigate('/login', { state: { cadastroSucesso: true, email: form.email } }),
   })
 
   function set(f: string, v: string) { setForm((prev) => ({ ...prev, [f]: v })) }
@@ -169,7 +171,7 @@ function FormEmpresa({ onVoltar, navigate }: { onVoltar: () => void; navigate: R
           <textarea value={form.descricao} onChange={(e) => set('descricao', e.target.value)}
             placeholder="Fale sobre a empresa" rows={2} className={`${ic} resize-none`} />
         </Campo>
-        {error && <ErroMsg texto={error instanceof Error ? error.message : 'Erro ao cadastrar.'} />}
+        {error && <ErroMsg texto={mensagemDeErro(error, 'Erro ao cadastrar.')} />}
         <button type="submit" disabled={isPending} className={btn}>{isPending ? 'Cadastrando...' : 'Criar conta'}</button>
       </form>
     </>
